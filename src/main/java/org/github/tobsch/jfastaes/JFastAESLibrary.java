@@ -43,7 +43,8 @@ public class JFastAESLibrary implements Library {
         */
     public class JFastAES  extends RubyObject {
       private byte[] linebreak = {}; // Remove Base64 encoder default linebreak
-      private Cipher cipher;
+      private Cipher encryptCipher;
+      private Cipher decryptCipher;
       private SecretKey key;
 
       public JFastAES(final Ruby ruby, RubyClass rubyClass) {
@@ -53,44 +54,42 @@ public class JFastAESLibrary implements Library {
       @JRubyMethod
       public IRubyObject initialize(ThreadContext context,IRubyObject secret) throws Exception {
         key = new SecretKeySpec(secret.toString().getBytes(), "AES");
-        cipher = Cipher.getInstance("AES/ECB/PKCS5Padding", "SunJCE");
+        encryptCipher = Cipher.getInstance("AES/ECB/PKCS5Padding", "SunJCE");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, key);
       
+        decryptCipher = Cipher.getInstance("AES/ECB/PKCS5Padding", "SunJCE");
+        decryptCipher.init(Cipher.DECRYPT_MODE, key);
         return context.nil;
       }
       
       @JRubyMethod
-      public synchronized IRubyObject encrypt(ThreadContext context, IRubyObject plainText) throws Exception {
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        
-        byte[] cipherText = cipher.doFinal(plainText.toString().getBytes());
+      public IRubyObject encrypt(ThreadContext context, IRubyObject plainText) throws Exception {
+        byte[] cipherText = encryptCipher.doFinal(((RubyString)plainText).getBytes());
         
         return context.runtime.newString(new ByteList(cipherText, true));
       }
 
       @JRubyMethod
-      public synchronized IRubyObject decrypt(ThreadContext context, IRubyObject codedText) throws Exception {
+      public IRubyObject decrypt(ThreadContext context, IRubyObject codedText) throws Exception {
         byte[] encypted = ((RubyString)codedText).getBytes();
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] decrypted = cipher.doFinal(encypted);  
+        byte[] decrypted = decryptCipher.doFinal(encypted);  
         String stringVal = new String(decrypted);
 
         return context.runtime.newString(stringVal);
       }
 
       @JRubyMethod
-      public synchronized IRubyObject encrypt64(ThreadContext context, IRubyObject plainText) throws Exception {
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        byte[] cipherText = cipher.doFinal(plainText.toString().getBytes());
+      public IRubyObject encrypt64(ThreadContext context, IRubyObject plainText) throws Exception {
+        byte[] cipherText = encryptCipher.doFinal(((RubyString)plainText).getBytes());
         byte[] encoded = Base64.encodeBase64(cipherText, false);
         String stringVal = new String(encoded);
-        return context.runtime.newString();
+        return context.runtime.newString(stringVal);
       }
 
       @JRubyMethod
-      public synchronized IRubyObject decrypt64(ThreadContext context, IRubyObject codedText) throws Exception {
-        byte[] encypted = Base64.decodeBase64(codedText.toString().getBytes());
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] decrypted = cipher.doFinal(encypted);  
+      public IRubyObject decrypt64(ThreadContext context, IRubyObject codedText) throws Exception {
+        byte[] encypted = Base64.decodeBase64(((RubyString)codedText).getBytes());
+        byte[] decrypted = decryptCipher.doFinal(encypted);  
         String stringVal = new String(decrypted);
 
         return context.runtime.newString(stringVal);
