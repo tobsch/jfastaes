@@ -3,8 +3,8 @@ $:.push File.expand_path("../lib", __FILE__)
 require "jfast_aes/version"
 
 Gem::Specification.new do |s|
-  s.name        = "jfast_aes"
-  s.version     = Jfast::Aes::VERSION
+  s.name        = "jfastaes"
+  s.version     = JFastAES::VERSION
   s.authors     = ["Tobias Schlottke"]
   s.email       = ["tobias.schlottke@gmail.com"]
   s.homepage    = ""
@@ -21,4 +21,10 @@ Gem::Specification.new do |s|
   # specify any dependencies here; for example:
   # s.add_development_dependency "rspec"
   # s.add_runtime_dependency "rest-client"
+  s.add_development_dependency 'shoulda-context'
+  s.add_development_dependency 'buildr', '1.4.6'
+  s.add_development_dependency 'ci_reporter'
+  
+  # necessary instead of Mini:Unit as Mini:Unit cannot produce Jenkins-compatible test results
+  s.add_development_dependency 'test-unit'
 end
