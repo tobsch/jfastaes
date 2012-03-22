@@ -1,4 +1,4 @@
-require 'jfast_aes/version'
+require 'jfastaes/version'
 
 class JFastAES
 end
